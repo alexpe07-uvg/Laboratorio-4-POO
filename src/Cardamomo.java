@@ -1,3 +1,4 @@
-public class Cardamomo {
+public class Cardamomo implements Caducable {
+    
     
 }

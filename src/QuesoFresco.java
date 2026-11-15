@@ -1,3 +1,6 @@
-public class QuesoFresco {
+public class QuesoFresco implements Refrigerable, Caducable {
+    private float porcentajeGrasa;
+
+} 
     
-}
+
