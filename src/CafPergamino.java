@@ -26,12 +26,13 @@ public class CafPergamino extends Lote {
             case B:
                 tarifa = 9.0;
                 break;
-            case C:
+            default:
                 tarifa = 6.0;
                 break;
         }
         double pagoBase = getPesoRecibido() * tarifa;
 
+        //condición si se excede del 12%
         if (porcentajeHumedad > 12.0) {
             double puntosExtraPorc = Math.ceil(porcentajeHumedad - 12.0);
             double descuento = pagoBase * (0.03 * puntosExtraPorc); // se descuenta 3% por cada punto de humedad por encima del 12%

@@ -60,7 +60,7 @@ public abstract class Lote implements Comparable<Lote>{
     public abstract String getCategoriaProd();
     public abstract LocalDate getFechaOrden();
 
-    //metodos de caducable y refrigerable iniciados con false por defecto para evitar que los cafpes repitan está lógica innecesaria para ellos
+    //metodos de caducable y refrigerable iniciados con false por defecto para evitar que los cafes repitan está lógica innecesaria para ellos
     public boolean esCaducable() {
         return false;
     }
@@ -68,6 +68,13 @@ public abstract class Lote implements Comparable<Lote>{
         return false;
     }
 
+    public LocalDate getFechaCaducidad() {
+        return null;
+    }
+
+    public boolean estaCaducado(LocalDate fechaOperacion) {
+        return false;
+    }
 
     public double getCostoXKg() {
         return calcularPago() / pesoRecibido;
@@ -84,7 +91,8 @@ public abstract class Lote implements Comparable<Lote>{
             throw new IllegalArgumentException("No hay suficiente peso disponible dentro del lote.");
         }
         pesoDisponible -= kgSolicitados;
-        if(pesoDisponible == 0) {
+        if(pesoDisponible <= 0.0001) { //en lugar de llegar a cero exacto, se usa un margen de error para evitar problemas de precisión con double
+            pesoDisponible = 0;
             estado = Estado.AGOTADO;
         }
         return kgSolicitados * getCostoXKg() * 1.35; // se aplica un 35% de ganancia sobre el costo por kg
@@ -103,8 +111,8 @@ public abstract class Lote implements Comparable<Lote>{
     @Override
     public int compareTo(Lote otro) {
         //1. Primero perecederos y después no perecederos
-        if (this.esCaducable() && !otro.esCaducable()){
-            return this.esCaducable() ? -1 : 1;
+        if (this.esCaducable() != otro.esCaducable()){
+            return this.esCaducable() ? -1 : 1; //forma resumida de if-else
         }
 
         //2. Fecha de vencimiento (perecedero) o de ingreso (no perecedero)
