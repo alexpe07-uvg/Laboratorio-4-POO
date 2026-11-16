@@ -14,13 +14,11 @@ public class PruebasSistema {
         System.out.println("\n=== FIN DE LAS PRUEBAS ===");
     }
 
-    // Método auxiliar para imprimir siempre el formato que pide el enunciado
     private static void verificar(String caso, String entrada, String esperado, String obtenido, boolean paso) {
         System.out.println("CASO: " + caso);
         System.out.println("  Entrada:   " + entrada);
         System.out.println("  Esperado:  " + esperado);
         System.out.println("  Obtenido:  " + obtenido);
-        // Cambiamos el mensaje para que suene más a tu estilo
         System.out.println("  Estado:    " + (paso ? "[CORRECTO]" : "[INCORRECTO]"));
         System.out.println("--------------------------------------------------");
     }
@@ -31,57 +29,27 @@ public class PruebasSistema {
         // 1. Café con humedad por fracción (500 kg, Calidad A, 13.4% -> descuenta 6% = Q5,640.00)
         Lote cafe = new CafPergamino("C-01", "Juan", hoy, 500, Calidad.A, 13.4);
         double pagoCafe = cafe.calcularPago();
-        verificar(
-            "Pago Café en pergamino con fracción de humedad",
-            "500 kg, Calidad A, 13.4% humedad",
-            "Q5640.00",
-            String.format("Q%.2f", pagoCafe),
-            Math.abs(pagoCafe - 5640.00) < 0.01
-        );
+        verificar("Pago Café en pergamino con fracción de humedad", "500 kg, Calidad A, 13.4% humedad", "Q5640.00", String.format("Q%.2f", pagoCafe), Math.abs(pagoCafe - 5640.00) < 0.01);
 
         // 2. Café orgánico (mismos datos + Q0.75/kg = Q6,015.00)
         Lote organico = new CafOrganico("CO-01", "Ana", hoy, 500, Calidad.A, 13.4, "Mayacert", hoy.plusMonths(6));
         double pagoOrg = organico.calcularPago();
-        verificar(
-            "Pago Café orgánico con bonificación",
-            "500 kg, Calidad A, 13.4% humedad, sello vigente",
-            "Q6015.00",
-            String.format("Q%.2f", pagoOrg),
-            Math.abs(pagoOrg - 6015.00) < 0.01
-        );
+        verificar("Pago Café orgánico con bonificación", "500 kg, Calidad A, 13.4% humedad, sello vigente", "Q6015.00", String.format("Q%.2f", pagoOrg), Math.abs(pagoOrg - 6015.00) < 0.01);
 
         // 3. Cardamomo con bono grano verde >= 85% (80 kg, Calidad B, 90% -> Q4,224.00)
         Lote cardamomo = new Cardamomo("CAR-01", "Luis", hoy, 80, Calidad.B, 90.0);
         double pagoCard = cardamomo.calcularPago();
-        verificar(
-            "Pago Cardamomo con bono de grano verde",
-            "80 kg, Calidad B, 90% grano verde",
-            "Q4224.00",
-            String.format("Q%.2f", pagoCard),
-            Math.abs(pagoCard - 4224.00) < 0.01
-        );
+        verificar("Pago Cardamomo con bono de grano verde", "80 kg, Calidad B, 90% grano verde", "Q4224.00", String.format("Q%.2f", pagoCard), Math.abs(pagoCard - 4224.00) < 0.01);
 
         // 4. Hortaliza con merma del 5% (200 kg, Calidad A -> se pagan 190 kg = Q760.00)
         Lote hortaliza = new Hortaliza("HOR-01", "Rosa", hoy, 200, Calidad.A, 7);
         double pagoHort = hortaliza.calcularPago();
-        verificar(
-            "Pago Hortaliza con merma del 5%",
-            "200 kg, Calidad A, 7 días vida útil",
-            "Q760.00",
-            String.format("Q%.2f", pagoHort),
-            Math.abs(pagoHort - 760.00) < 0.01
-        );
+        verificar("Pago Hortaliza con merma del 5%", "200 kg, Calidad A, 7 días vida útil", "Q760.00", String.format("Q%.2f", pagoHort), Math.abs(pagoHort - 760.00) < 0.01);
 
         // 5. Queso fresco con descuento de empaque (40 kg, Calidad A -> Q1,460.00)
         Lote queso = new QuesoFresco("QUE-01", "Pedro", hoy, 40, Calidad.A, 25.0);
         double pagoQueso = queso.calcularPago();
-        verificar(
-            "Pago Queso fresco con descuento de empaque",
-            "40 kg, Calidad A, 25% grasa",
-            "Q1460.00",
-            String.format("Q%.2f", pagoQueso),
-            Math.abs(pagoQueso - 1460.00) < 0.01
-        );
+        verificar("Pago Queso fresco con descuento de empaque", "40 kg, Calidad A, 25% grasa", "Q1460.00", String.format("Q%.2f", pagoQueso), Math.abs(pagoQueso - 1460.00) < 0.01);
     }
 
     private static void probarVencimientosYPerdidas() {
@@ -89,37 +57,17 @@ public class PruebasSistema {
         Cooperativa coop = new Cooperativa(inicio);
         coop.registrarBodega(new Bodega("FRIA-1", 1000, true));
 
-        // Hortaliza 200 kg Calidad A, vida útil 7 días -> vence 12 marzo, caduca 13 marzo
-        // Pago = Q760.00 -> costo/kg = Q3.80
+        // Hortaliza 200 kg Calidad A, vida útil 7 días -> vence 12 marzo, caduca 13 marzo (Costo = Q3.80/kg)
         Lote hort = new Hortaliza("HOR-10", "Rosa", inicio, 200, Calidad.A, 7);
         coop.recibirLote(hort, "FRIA-1", true);
+        coop.despacharPedido("Hortaliza", 150); // Quedan 50 kg
 
-        // Despachamos 150 kg -> quedan 50 kg disponibles
-        coop.despacharPedido("Hortaliza", 150);
-
-        // Avanzamos 7 días (llegamos al 12 de marzo: el día de vencimiento AÚN NO está caducado)
         int descartadosDiaVence = coop.avanzarFecha(7);
-        verificar(
-            "Lote en su día exacto de vencimiento aún sigue disponible",
-            "Ingreso 5-mar, vida útil 7 días, fecha actual 12-mar",
-            "0 descartados, estado DISPONIBLE",
-            descartadosDiaVence + " descartados, estado " + hort.getEstado(),
-            descartadosDiaVence == 0 && hort.getEstado() == Estado.DISPONIBLE
-        );
+        verificar("Lote en su día exacto de vencimiento sigue disponible", "Ingreso 5-mar, vida útil 7 días, actual 12-mar", "0 descartados, estado DISPONIBLE", descartadosDiaVence + " descartados, estado " + hort.getEstado(), descartadosDiaVence == 0 && hort.getEstado() == Estado.DISPONIBLE);
 
-        // Avanzamos 1 día más (13 de marzo -> ya caducó; pérdida = 50 kg * Q3.80 = Q190.00)
         int descartadosDiaSig = coop.avanzarFecha(1);
-        
-        // CORRECCIÓN: Aquí se usa el nuevo método para obtener la pérdida por categoría
         double perdida = coop.getTotalPerdidas("Hortaliza");
-        
-        verificar(
-            "Descarte al día siguiente del vencimiento y cálculo de pérdida",
-            "Avanzar a 13-mar con 50 kg restantes (Q3.80/kg)",
-            "1 descartado, estado DESCARTADO, pérdida Q190.00",
-            String.format("%d descartado, estado %s, pérdida Q%.2f", descartadosDiaSig, hort.getEstado(), perdida),
-            descartadosDiaSig == 1 && hort.getEstado() == Estado.DESCARTADO && Math.abs(perdida - 190.00) < 0.01
-        );
+        verificar("Descarte al día siguiente del vencimiento y cálculo de pérdida", "Avanzar a 13-mar con 50 kg restantes (Q3.80/kg)", "1 descartado, estado DESCARTADO, pérdida Q190.00", String.format("%d descartado, estado %s, pérdida Q%.2f", descartadosDiaSig, hort.getEstado(), perdida), descartadosDiaSig == 1 && hort.getEstado() == Estado.DESCARTADO && Math.abs(perdida - 190.00) < 0.01);
     }
 
     private static void probarRestriccionesBodegas() {
@@ -128,66 +76,65 @@ public class PruebasSistema {
         coop.registrarBodega(new Bodega("SECA-1", 100, false));
         coop.registrarBodega(new Bodega("FRIA-1", 100, true));
 
-        // 1. Producto refrigerable en bodega seca
-        boolean rechazoTipo = false;
-        try {
-            Lote queso = new QuesoFresco("QUE-99", "Mario", hoy, 20, Calidad.A, 20);
-            coop.recibirLote(queso, "SECA-1", true);
-        } catch (IllegalArgumentException e) {
-            rechazoTipo = true;
-        }
-        verificar(
-            "Rechazo por incompatibilidad de bodega (Queso en bodega seca)",
-            "Queso fresco 20 kg -> Bodega SECA-1",
-            "Operación rechazada",
-            rechazoTipo ? "Operación rechazada" : "Se permitió (ERROR)",
-            rechazoTipo
-        );
+        double pagoInicialQueso = coop.getTotalPagado("Queso fresco");
+        double pagoInicialCafe = coop.getTotalPagado("Café en pergamino");
 
-        // 2. Exceso de capacidad
-        boolean rechazoCapacidad = false;
+        // 1. Bodegas cruzadas: Queso (frío) en seca y Café (seco) en fría
+        boolean rechazoFrioEnSeco = false;
+        try { coop.recibirLote(new QuesoFresco("QUE-99", "Mario", hoy, 20, Calidad.A, 20), "SECA-1", true); } 
+        catch (IllegalArgumentException e) { rechazoFrioEnSeco = true; }
+
+        boolean rechazoSecoEnFrio = false;
+        try { coop.recibirLote(new CafPergamino("CAF-99", "Mario", hoy, 20, Calidad.A, 12.0), "FRIA-1", true); } 
+        catch (IllegalArgumentException e) { rechazoSecoEnFrio = true; }
+
+        boolean finanzasIntactas = (coop.getTotalPagado("Queso fresco") == pagoInicialQueso) && (coop.getTotalPagado("Café en pergamino") == pagoInicialCafe);
+
+        verificar("Rechazo cruzado de tipos de bodega y estado financiero", "Queso en seca y Café en fría", "Operaciones rechazadas, pagos inalterados", (rechazoFrioEnSeco && rechazoSecoEnFrio) ? "Rechazadas y pagos inalterados" : "Fallo en validación", rechazoFrioEnSeco && rechazoSecoEnFrio && finanzasIntactas);
+
+        // 2. Capacidad acumulada
+        coop.recibirLote(new CafPergamino("CAF-OK", "Luis", hoy, 60, Calidad.A, 11.0), "SECA-1", true);
+        boolean rechazoAcumulado = false;
         try {
-            Lote cafeGrande = new CafPergamino("CAF-99", "Luis", hoy, 150, Calidad.A, 11.0);
-            coop.recibirLote(cafeGrande, "SECA-1", true);
+            // Intentar meter 50kg extra en bodega de 100kg que ya tiene 60kg
+            coop.recibirLote(new CafPergamino("CAF-EXCESO", "Luis", hoy, 50, Calidad.A, 11.0), "SECA-1", true);
         } catch (IllegalArgumentException e) {
-            rechazoCapacidad = true;
+            rechazoAcumulado = true;
         }
-        verificar(
-            "Rechazo por exceso de capacidad de bodega",
-            "Café 150 kg -> Bodega SECA-1 (Capacidad 100 kg)",
-            "Operación rechazada",
-            rechazoCapacidad ? "Operación rechazada" : "Se permitió (ERROR)",
-            rechazoCapacidad
-        );
+
+        Bodega seca1 = coop.buscarBodega("SECA-1");
+        verificar("Rechazo por capacidad acumulada de bodega", "Meter 50kg en bodega de 100kg con 60kg ocupados", "Rechazado, ocupación mantenida en 60kg", "Rechazado: " + rechazoAcumulado + ", Ocupación: " + seca1.getPesoOcupado() + "kg", rechazoAcumulado && Math.abs(seca1.getPesoOcupado() - 60.0) < 0.01);
     }
 
     private static void probarOrdenSalidaYDespachos() {
         LocalDate hoy = LocalDate.of(2026, 3, 1);
         Cooperativa coop = new Cooperativa(hoy);
-        coop.registrarBodega(new Bodega("SECA-1", 500, false));
-        coop.registrarBodega(new Bodega("SECA-2", 500, false));
+        coop.registrarBodega(new Bodega("FRIA-1", 500, true));
 
-        // Ingresamos primero un café (no perecedero), luego cardamomo B en SECA-1 y cardamomo A en SECA-2 (ambos vencen igual)
-        Lote cafe = new CafPergamino("CAF-01", "Pedro", hoy.minusDays(5), 100, Calidad.A, 10.0);
-        Lote cardB = new Cardamomo("CAR-B", "Ana", hoy, 50, Calidad.B, 80.0); // Q48/kg
-        Lote cardA = new Cardamomo("CAR-A", "Juan", hoy, 50, Calidad.A, 80.0); // Q60/kg
+        // DEMOSTRACIÓN DE DESEMPATE EN CASCADA (Reglas de compareTo):
+        // H1: Vence en 10 días, Calidad A (Mejor calidad, pero vence lejos)
+        Lote h1 = new Hortaliza("HOR-A10", "A", hoy, 50, Calidad.A, 10);
+        // H2: Vence en 2 días, Calidad B (Peor calidad, pero vence antes -> DEBE GANARLE A H1)
+        Lote h2 = new Hortaliza("HOR-B2", "B", hoy, 50, Calidad.B, 2);
+        // H3: Vence en 1 día (ingresó ayer, vida 2 días), Calidad B -> DEBE GANARLE A H2 POR VENCIMIENTO
+        Lote h3 = new Hortaliza("HOR-B1", "C", hoy.minusDays(1), 50, Calidad.B, 2);
 
-        coop.recibirLote(cafe, "SECA-1", true);
-        coop.recibirLote(cardB, "SECA-1", true);
-        coop.recibirLote(cardA, "SECA-2", true);
+        coop.recibirLote(h1, "FRIA-1", false);
+        coop.recibirLote(h2, "FRIA-1", false);
+        coop.recibirLote(h3, "FRIA-1", false);
 
-        // Pedido de 70 kg de Cardamomo: debe tomar 50 kg de CAR-A (SECA-2) y 20 kg de CAR-B (SECA-1)
-        // Cobro esperado: (50 * 60 * 1.35) + (20 * 48 * 1.35) = 4050 + 1296 = Q5,346.00
-        double cobro = coop.despacharPedido("Cardamomo", 70);
-        boolean ordenCorrecto = (cardA.getEstado() == Estado.AGOTADO) && (Math.abs(cardB.getPesoDisponible() - 30.0) < 0.01);
+        // Despachar 20kg: Debe salir de H3 (Vence antes que todos)
+        coop.despacharPedido("Hortaliza", 20);
+        verificar("Desempate de salida: Vencimiento próximo vence a Calidad", "H3(vence mañana), H2(vence en 2d), H1(vence en 10d Cal.A)", "H3 pierde 20kg, H2 y H1 intactos", String.format("H3 disp: %.2fkg, H2 disp: %.2fkg", h3.getPesoDisponible(), h2.getPesoDisponible()), Math.abs(h3.getPesoDisponible() - 30.0) < 0.01 && h2.getPesoDisponible() == 50.0);
 
-        verificar(
-            "Desempate por calidad entre bodegas y despacho combinado",
-            "Pedido 70 kg Cardamomo (CAR-A 50kg en SECA-2 vs CAR-B 50kg en SECA-1)",
-            "CAR-A agotado, CAR-B con 30.00 kg, cobro Q5346.00",
-            String.format("CAR-A %s, CAR-B con %.2f kg, cobro Q%.2f", cardA.getEstado(), cardB.getPesoDisponible(), cobro),
-            ordenCorrecto && Math.abs(cobro - 5346.00) < 0.01
-        );
+        // Despachar 40kg más: Debe agotar H3 (30kg) y tomar 10kg de H2 (vence antes que H1)
+        coop.despacharPedido("Hortaliza", 40);
+        verificar("Desempate continuo en despacho combinado", "Despachar 40kg restantes", "H3 agotado, H2 pierde 10kg, H1 intacto", String.format("H3 %s, H2 disp: %.2fkg", h3.getEstado(), h2.getPesoDisponible()), h3.getEstado() == Estado.AGOTADO && Math.abs(h2.getPesoDisponible() - 40.0) < 0.01 && Math.abs(h1.getPesoDisponible() - 50.0) < 0.01);
+
+        // EXTRA: Comprobación directa de Perecedero vs No Perecedero
+        Lote cafe = new CafPergamino("CAF-Z", "X", hoy, 50, Calidad.A, 12); // No perecedero
+        boolean perecederoGana = h1.compareTo(cafe) < 0; // H1 (Hortaliza) debe ordenarse antes que Café
+        verificar("Desempate: Perecedero siempre va antes que No Perecedero", "Comparar Hortaliza vs Café", "Hortaliza gana (retorna negativo)", perecederoGana ? "Hortaliza gana" : "Fallo en orden", perecederoGana);
     }
 
     private static void probarOperacionesSinEfecto() {
@@ -195,64 +142,31 @@ public class PruebasSistema {
         Cooperativa coop = new Cooperativa(hoy);
         coop.registrarBodega(new Bodega("SECA-1", 500, false));
 
-        // 1. Pre-liquidación no altera pagos ni existencias
+        // 1. Pre-liquidación
         Lote prospecto = new CafPergamino("CAF-PRE", "Carlos", hoy, 100, Calidad.A, 11.0);
         coop.preliquidar(prospecto);
-        
-        // CORRECCIÓN: Aquí se usa el nuevo método
-        double pagadoTrasPre = coop.getTotalPagado("Café en pergamino");
-        boolean bodegaSigueVacia = coop.getBodegas().get(0).estaVacia();
+        verificar("Pre-liquidación no modifica pagos ni inventarios", "Pre-liquidar CAF-PRE de 100 kg", "Pagado Q0.00, bodega vacía", String.format("Pagado Q%.2f, bodega vacía: %b", coop.getTotalPagado("Café en pergamino"), coop.getBodegas().get(0).estaVacia()), coop.getTotalPagado("Café en pergamino") == 0.0 && coop.getBodegas().get(0).estaVacia());
 
-        verificar(
-            "Pre-liquidación no modifica pagos ni inventarios",
-            "Pre-liquidar CAF-PRE de 100 kg",
-            "Pagado Q0.00, bodega vacía",
-            String.format("Pagado Q%.2f, bodega %s", pagadoTrasPre, bodegaSigueVacia ? "vacía" : "con datos"),
-            pagadoTrasPre == 0.0 && bodegaSigueVacia
-        );
-
-        // 2. Pedido rechazado no altera stock ni cobros
+        // 2. Pedido rechazado
         Lote real = new CafPergamino("CAF-REAL", "Carlos", hoy, 100, Calidad.A, 11.0);
         coop.recibirLote(real, "SECA-1", true);
-
+        double cobrosAntes = coop.getTotalCobrado("Café en pergamino");
         boolean pedidoRechazado = false;
-        try {
-            coop.despacharPedido("Café en pergamino", 250); // Pide más de los 100 disponibles
-        } catch (IllegalArgumentException e) {
-            pedidoRechazado = true;
-        }
+        try { coop.despacharPedido("Café en pergamino", 250); } 
+        catch (IllegalArgumentException e) { pedidoRechazado = true; }
         
-        // CORRECCIÓN: Aquí se usa el nuevo método
-        double cobrado = coop.getTotalCobrado("Café en pergamino");
-        
-        verificar(
-            "Pedido insuficiente rechazado sin modificar stock ni cobros",
-            "Solicitar 250 kg cuando solo hay 100 kg",
-            "Rechazado, stock 100.00 kg, cobrado Q0.00",
-            String.format("%s, stock %.2f kg, cobrado Q%.2f",
-                pedidoRechazado ? "Rechazado" : "Aceptado", real.getPesoDisponible(), cobrado),
-            pedidoRechazado && Math.abs(real.getPesoDisponible() - 100.0) < 0.01 && cobrado == 0.0
-        );
+        verificar("Pedido insuficiente rechazado sin modificar cobros", "Solicitar 250 kg de 100 kg", "Rechazado, stock 100kg, cobros inalterados", String.format("Rechazado: %b, Stock: %.2fkg", pedidoRechazado, real.getPesoDisponible()), pedidoRechazado && Math.abs(real.getPesoDisponible() - 100.0) < 0.01 && coop.getTotalCobrado("Café en pergamino") == cobrosAntes);
 
-        // 3. Queso calidad C y retroceso de fecha rechazados
+        // 3. Queso calidad C y retroceso de fecha
+        double pagosAntes = coop.getTotalPagado("Queso fresco");
         boolean quesoCRechazado = false;
-        try {
-            new QuesoFresco("QUE-C", "Marta", hoy, 10, Calidad.C, 20);
-        } catch (IllegalArgumentException e) {
-            quesoCRechazado = true;
-        }
+        try { new QuesoFresco("QUE-C", "Marta", hoy, 10, Calidad.C, 20); } 
+        catch (IllegalArgumentException e) { quesoCRechazado = true; }
+        
         boolean fechaRetrocesoRechazada = false;
-        try {
-            coop.avanzarFecha(-1);
-        } catch (IllegalArgumentException e) {
-            fechaRetrocesoRechazada = true;
-        }
-        verificar(
-            "Rechazo de Queso calidad C y retroceso de fecha",
-            "Crear Queso calidad C y avanzarFecha(-1)",
-            "Ambas operaciones rechazadas",
-            (quesoCRechazado && fechaRetrocesoRechazada) ? "Ambas operaciones rechazadas" : "Fallo en validación",
-            quesoCRechazado && fechaRetrocesoRechazada
-        );
+        try { coop.avanzarFecha(-1); } 
+        catch (IllegalArgumentException e) { fechaRetrocesoRechazada = true; }
+
+        verificar("Rechazo de validaciones críticas explícitas", "Crear Queso C y avanzarFecha(-1)", "Ambas rechazadas, pagos Q0.00", String.format("Rechazos: %b, Pagos intactos: %b", (quesoCRechazado && fechaRetrocesoRechazada), (coop.getTotalPagado("Queso fresco") == pagosAntes)), quesoCRechazado && fechaRetrocesoRechazada && coop.getTotalPagado("Queso fresco") == pagosAntes);
     }
 }
