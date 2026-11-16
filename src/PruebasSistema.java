@@ -106,37 +106,51 @@ public class PruebasSistema {
         verificar("Rechazo por capacidad acumulada de bodega", "Meter 50kg en bodega de 100kg con 60kg ocupados", "Rechazado, ocupación mantenida en 60kg", "Rechazado: " + rechazoAcumulado + ", Ocupación: " + seca1.getPesoOcupado() + "kg", rechazoAcumulado && Math.abs(seca1.getPesoOcupado() - 60.0) < 0.01);
     }
 
-    private static void probarOrdenSalidaYDespachos() {
+   private static void probarOrdenSalidaYDespachos() {
         LocalDate hoy = LocalDate.of(2026, 3, 1);
         Cooperativa coop = new Cooperativa(hoy);
         coop.registrarBodega(new Bodega("FRIA-1", 500, true));
 
         // DEMOSTRACIÓN DE DESEMPATE EN CASCADA (Reglas de compareTo):
-        // H1: Vence en 10 días, Calidad A (Mejor calidad, pero vence lejos)
+        // H1: Ingresa hoy, vida 10 días -> Vence en 10 días, Calidad A
         Lote h1 = new Hortaliza("HOR-A10", "A", hoy, 50, Calidad.A, 10);
-        // H2: Vence en 2 días, Calidad B (Peor calidad, pero vence antes -> DEBE GANARLE A H1)
-        Lote h2 = new Hortaliza("HOR-B2", "B", hoy, 50, Calidad.B, 2);
-        // H3: Vence en 1 día (ingresó ayer, vida 2 días), Calidad B -> DEBE GANARLE A H2 POR VENCIMIENTO
-        Lote h3 = new Hortaliza("HOR-B1", "C", hoy.minusDays(1), 50, Calidad.B, 2);
+        
+        // H2: Ingresó hace 1 día, vida 3 días -> Vence en 2 días, Calidad B
+        Lote h2 = new Hortaliza("HOR-B2", "B", hoy.minusDays(1), 50, Calidad.B, 3);
+        
+        // H3: Ingresó hace 2 días, vida 3 días -> Vence en 1 día, Calidad B
+        Lote h3 = new Hortaliza("HOR-B1", "C", hoy.minusDays(2), 50, Calidad.B, 3);
 
         coop.recibirLote(h1, "FRIA-1", false);
         coop.recibirLote(h2, "FRIA-1", false);
         coop.recibirLote(h3, "FRIA-1", false);
 
-        // Despachar 20kg: Debe salir de H3 (Vence antes que todos)
+        // Despachar 20kg: Debe salir de H3 (Vence en 1 día, le gana a todos)
         coop.despacharPedido("Hortaliza", 20);
-        verificar("Desempate de salida: Vencimiento próximo vence a Calidad", "H3(vence mañana), H2(vence en 2d), H1(vence en 10d Cal.A)", "H3 pierde 20kg, H2 y H1 intactos", String.format("H3 disp: %.2fkg, H2 disp: %.2fkg", h3.getPesoDisponible(), h2.getPesoDisponible()), Math.abs(h3.getPesoDisponible() - 30.0) < 0.01 && h2.getPesoDisponible() == 50.0);
+        verificar("Desempate de salida: Vencimiento próximo vence a Calidad", 
+            "H3(vence mañana), H2(vence en 2d), H1(vence en 10d Cal.A)", 
+            "H3 pierde 20kg, H2 y H1 intactos", 
+            String.format("H3 disp: %.2fkg, H2 disp: %.2fkg", h3.getPesoDisponible(), h2.getPesoDisponible()), 
+            Math.abs(h3.getPesoDisponible() - 30.0) < 0.01 && h2.getPesoDisponible() == 50.0);
 
         // Despachar 40kg más: Debe agotar H3 (30kg) y tomar 10kg de H2 (vence antes que H1)
         coop.despacharPedido("Hortaliza", 40);
-        verificar("Desempate continuo en despacho combinado", "Despachar 40kg restantes", "H3 agotado, H2 pierde 10kg, H1 intacto", String.format("H3 %s, H2 disp: %.2fkg", h3.getEstado(), h2.getPesoDisponible()), h3.getEstado() == Estado.AGOTADO && Math.abs(h2.getPesoDisponible() - 40.0) < 0.01 && Math.abs(h1.getPesoDisponible() - 50.0) < 0.01);
+        verificar("Desempate continuo en despacho combinado", 
+            "Despachar 40kg restantes", 
+            "H3 agotado, H2 pierde 10kg, H1 intacto", 
+            String.format("H3 %s, H2 disp: %.2fkg", h3.getEstado(), h2.getPesoDisponible()), 
+            h3.getEstado() == Estado.AGOTADO && Math.abs(h2.getPesoDisponible() - 40.0) < 0.01 && Math.abs(h1.getPesoDisponible() - 50.0) < 0.01);
 
         // EXTRA: Comprobación directa de Perecedero vs No Perecedero
         Lote cafe = new CafPergamino("CAF-Z", "X", hoy, 50, Calidad.A, 12); // No perecedero
         boolean perecederoGana = h1.compareTo(cafe) < 0; // H1 (Hortaliza) debe ordenarse antes que Café
-        verificar("Desempate: Perecedero siempre va antes que No Perecedero", "Comparar Hortaliza vs Café", "Hortaliza gana (retorna negativo)", perecederoGana ? "Hortaliza gana" : "Fallo en orden", perecederoGana);
+        verificar("Desempate: Perecedero siempre va antes que No Perecedero", 
+            "Comparar Hortaliza vs Café", 
+            "Hortaliza gana (retorna negativo)", 
+            perecederoGana ? "Hortaliza gana" : "Fallo en orden", 
+            perecederoGana);
     }
-
+    
     private static void probarOperacionesSinEfecto() {
         LocalDate hoy = LocalDate.of(2026, 3, 1);
         Cooperativa coop = new Cooperativa(hoy);
